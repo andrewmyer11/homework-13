@@ -1,109 +1,107 @@
+let obstacles = [];   // Array to store obstacles
+let newObstacles = [];  // Non-moving obstacles added by mouse clicks
+let playerX, playerY;  // Player position
+let exitX, exitY, exitW, exitH;  // Exit properties
+let gameWon = false;
 
-var characterX = 100;
-var characterY = 100;
-
-var w = 87;
-var s = 83;
-var a = 65;
-var d = 68;
-
-
-var shapeX = 30;
-var shapeY = 50;
-
-
-var mouseShapeX;
-var mouseShapeY;
-
-var shape1, shape2;
 function setup() {
-    createCanvas(500, 600);
+    createCanvas(800, 600);
 
-    shape1 = new Rectangle(100,100,20,30,120,20,200);
-    shape2 = new Rectangle(200,300,50,80,220,120,20);
-    createCharacter(200, 350);
+    // Create 5 initial obstacles
+    for (let i = 0; i < 5; i++) {
+        obstacles.push({
+            x: random(width),
+            y: random(height),
+            w: random(30, 80),
+            h: random(30, 80),
+            color: [random(255), random(255), random(255)],
+            speedX: random(-3, 3),
+            speedY: random(-3, 3)
+        });
+    }
+
+    // Initialize player at the center
+    playerX = width / 2;
+    playerY = height / 2;
+
+    // Define the exit area
+    exitX = width - 100;
+    exitY = height - 80;
+    exitW = 80;
+    exitH = 60;
 }
 
-function draw () {
-    background(120, 45, 78);
-    stroke(0);
-    fill(0);
+function draw() {
+    background(0);  // Clear the screen
 
-
-    createBorders(10);
-
-
+    // Draw exit
+    fill(0, 255, 0);
+    rect(exitX, exitY, exitW, exitH);
     textSize(16);
-    text("Exit", width - 50, height - 50)
+    fill(0);
+    textAlign(CENTER, CENTER);
+    text("EXIT", exitX + exitW / 2, exitY + exitH / 2);
 
+    // Draw obstacles
+    for (let obs of obstacles) {
+        fill(obs.color);
+        rect(obs.x, obs.y, obs.w, obs.h);
 
-    drawCharacter();
-    characterMovement();
+        // Move obstacles
+        obs.x += obs.speedX;
+        obs.y += obs.speedY;
 
-
-
-    fill(13, 145, 14);
-
-
-    shape1.draw();
-    shape2.draw();
-
-
-    if (characterX > width && characterY > width - 50) {
-        fill(0);
-        stroke(5);
-        textSize(26);
-        text("You Win!", width / 2 - 50, height / 2 - 50);
-}
-
-
-    fill(120, 130, 140);
-    circle(mouseShapeX, mouseShapeY, 25);
-}
-
-function characterMovement() {
-
-    if (keyIsDown(w)) {
-    characterY -= 10;
+        // Wrap around screen
+        if (obs.x > width) obs.x = -obs.w;
+        if (obs.x + obs.w < 0) obs.x = width;
+        if (obs.y > height) obs.y = -obs.h;
+        if (obs.y + obs.h < 0) obs.y = height;
     }
-    if (keyIsDown(s)) {
-    characterY
+
+    // Draw non-moving obstacles
+    for (let obs of newObstacles) {
+        fill(obs.color);
+        rect(obs.x, obs.y, obs.w, obs.h);
     }
-    if (keyIsDown(a)) {
-    characterX -=10;
-    console.log("movement: " + characterX);
+
+    // Draw player
+    if (!gameWon) {
+        fill(255, 255, 0);
+        ellipse(playerX, playerY, 30, 30);
+
+        // Move player with arrow keys
+        if (keyIsDown(LEFT_ARROW)) playerX -= 5;
+        if (keyIsDown(RIGHT_ARROW)) playerX += 5;
+        if (keyIsDown(UP_ARROW)) playerY -= 5;
+        if (keyIsDown(DOWN_ARROW)) playerY += 5;
+
+        // Check if player reached the exit
+        if (
+            playerX > exitX && 
+            playerX < exitX + exitW && 
+            playerY > exitY && 
+            playerY < exitY + exitH
+        ) {
+            gameWon = true;
+        }
     }
-    if (keyIsDown(d))   {
-    characterX +=10;
+
+    // Display winning message
+    if (gameWon) {
+        fill(255);
+        textSize(48);
+        textAlign(CENTER, CENTER);
+        text("YOU WIN!", width / 2, height / 2);
     }
 }
 
-function createCharacter(x, y) {
-    characterX = x;
-    characterY = y;
-}
-
-function drawCharacter() {
-    fill(23, 40, 123);
-    circle(characterX, characterY, 25);
-}
-
-function createBorders(thickness)   {
-
-    rect(0, 0, width, thickness);
-
-    rect(0, 0, thickness, height);
-
-    rect(0, height - thickness, width, thickness);
-
-    rect(width - thickness, 0, thickness, height - 50);
-}
-
-function mouseClicked() {
-    mouseShapeX = mouseX;
-    mouseShapeY = mouseY;
-}
-
-function getRandomNUmber(number) {
-    return Math.floor(Math.random() * number) + 10;
+function mousePressed() {
+    // Add a non-moving obstacle at the mouse position
+    newObstacles.push({
+        x: mouseX,
+        y: mouseY,
+        w: random(30, 80),
+        h: random(30, 80),
+        color: [random(255), random(255), random(255)]
+    });
 }
